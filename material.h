@@ -40,7 +40,7 @@ public:
 
     bool scatter(ray &pRayIn, const hit_record &pRec, vec3 &pAttenuation, bool &isLightSource) const
     {
-        vec3 reflected = reflect(unit_vector(pRayIn.direction()), pRec.normal);
+        vec3 reflected = reflect(normalize(pRayIn.direction()), pRec.normal);
         pRayIn = ray(pRec.p, reflected + fuzz*random_in_unit_sphere());
         pAttenuation = albedo;
         isLightSource = false;
@@ -129,7 +129,7 @@ public:
     // common values:  air=1, glass=1.3-1.7, diamond=2.4
     bool refract(const vec3& v, const vec3& n, float ni_over_nt, vec3& refracted) const
     {
-        vec3 uv = unit_vector(v);
+        vec3 uv = normalize(v);
         float dt = dot(uv, n);
         float discriminant = 1.0f - ni_over_nt*ni_over_nt*(1-dt*dt);
         if (discriminant > 0) {
