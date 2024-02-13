@@ -1,0 +1,3 @@
+[Project]
+Name=sdl2-cpu-raytrace-spheres
+Manager=KDevCMakeManager

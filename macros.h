@@ -1,0 +1,11 @@
+#ifndef MACROSH
+#define MACROSH
+
+#define WINDOW_WIDTH 1280
+#define WINDOW_HEIGHT 720
+#define NUM_ALIAS_STEPS 128
+#define MAX_NUM_REFLECTIONS 512
+#define SKYBOX_COLOR vec3(0.0,0.0,0.0)
+#define NUM_THREADS 8
+
+#endif
