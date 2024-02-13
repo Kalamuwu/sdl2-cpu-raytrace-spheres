@@ -113,9 +113,11 @@ inline vec3 operator*(const vec3& v, float t)
 
 inline vec3 operator/(vec3 v, float t)
 {
-    const __m128 scalar = _mm_set_ps1(t);
-    const __m128 scaled = _mm_div_ps(v.xmm_, scalar);
-    return vec3(scaled);
+    float k = 1.0f / t;
+    return vec3(
+        v.e[0] * k,
+        v.e[1] * k,
+        v.e[2] * k);
 }
 
 inline vec3& vec3::operator+=(const vec3& v)
