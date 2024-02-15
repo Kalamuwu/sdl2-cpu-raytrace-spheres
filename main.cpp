@@ -24,6 +24,78 @@
     #include "float/thread_pool.h"
 #endif
 
+// inline vec3 process_float(vec3 v1, vec3 v2) {
+//     const __m128 XMM_POS_2_loc = _mm_set1_ps(2.0);
+//     const __m128 XMM_NEG_1_loc = _mm_set1_ps(-1.0);
+//     __m128 r;
+//     vec3 p;
+//     do {
+//         // pick random point in unit cube
+//         r = _mm_set_ps(drand48(), drand48(), drand48(), 0);
+//         p = vec3(_mm_fmadd_ps(r, XMM_POS_2_loc, XMM_NEG_1_loc));  // 2x-1 ; scales [0,1] to [-1,1]
+//     // reject while not in unit sphere; this happens when : sqrt(x^2 + y^2 + z^2) > 1
+//     } while (p.squared_length() > 1);
+//     return p;
+// }
+//
+// static const __m128 XMM_POS_2 = _mm_set1_ps(2.0);
+// static const __m128 XMM_NEG_1 = _mm_set1_ps(-1.0);
+//
+// inline vec3 process_simd(vec3 v1, vec3 v2) {
+//     __m128 r;
+//     vec3 p;
+//     do {
+//         // pick random point in unit cube
+//         r = _mm_set_ps(drand48(), drand48(), drand48(), 0);
+//         p = vec3(_mm_fmadd_ps(r, XMM_POS_2, XMM_NEG_1));  // 2x-1 ; scales [0,1] to [-1,1]
+//     // reject while not in unit sphere; this happens when : sqrt(x^2 + y^2 + z^2) > 1
+//     } while (p.squared_length() > 1);
+//     return p;
+// }
+//
+// int _main()
+// {
+//     clock_t init, start_float, stop_float, start_simd, stop_simd;
+//
+//     long n = 10;//INT16_MAX;
+//     vec3 vecs_a[n];
+//     vec3 vecs_b[n];
+//     vec3 out_float[n];
+//     vec3 out_simd[n];
+//
+//     init = clock();
+//     for (long i = 0; i < n; i++)
+//     {
+//         vecs_a[i] = vec3(0,0,0);//random_in_unit_sphere();
+//         vecs_b[i] = vec3(0,0,0);//random_in_unit_sphere();
+//     }
+//
+//     start_float = clock();
+//     for (long i = 0; i < n; i++)
+//     {
+//         out_float[i] = process_float(vecs_a[i], vecs_b[i]);
+//     }
+//     stop_float = clock();
+//
+//     start_simd = clock();
+//     for (long i = 0; i < n; i++)
+//     {
+//         out_simd[i] = process_simd(vecs_a[i], vecs_b[i]);
+//     }
+//     stop_simd = clock();
+//
+//     // std::cout << "use_simd=" << USE_SIMD << std::endl;
+//     // std::cout << "n=" << n << std::endl;
+//
+//     // double init_seconds = ((double)(start_float - init)) / CLOCKS_PER_SEC;
+//     double float_seconds = ((double)(stop_float - start_float)) / CLOCKS_PER_SEC;
+//     double simd_seconds = ((double)(stop_simd - start_simd)) / CLOCKS_PER_SEC;
+//     std::cout << "locals took:  " << float_seconds << std::endl;
+//     std::cout << "global took:   " << simd_seconds << std::endl;
+//
+//     return 0;
+// }
+
 // gross but functional
 // displays output i.e.    23% done   [||||___________]
 float displ_progress(int done, int total, int width)
@@ -55,21 +127,21 @@ int main()
 
     int num_pixels = WINDOW_WIDTH * WINDOW_HEIGHT;
 
-    // Hitable *dList[9];
-    // dList[0] = new Sphere(vec3( 0,   100.6, -2  ), 100, new Diffuse(   vec3(0.3, 0.5, 0.7)                ));
-    // dList[1] = new Sphere(vec3( 0,     0,   -2  ), 0.5, new Diffuse(   vec3(0.8, 0.3, 0.3)                ));
-    // dList[2] = new Sphere(vec3( 2.6,  -1.4, -1.7), 0.7, new Metal(     vec3(0.7, 0.7, 0.7),   0.4         ));
-    // dList[3] = new Sphere(vec3( 1,     0,   -2  ), 0.4, new Metal(     vec3(0.3, 0.4, 0.9),   0.05        ));
-    // dList[4] = new Sphere(vec3(-0.3,   0.1, -1  ), 0.3, new Glass(     vec3(0.5, 1.0, 0.6),   0.9         ));
-    // dList[5] = new Sphere(vec3( 0,     0.2,  1  ), 0.3, new Glass(     vec3(0.8, 0.2, 0.3),   0.0         ));
-    // dList[6] = new Sphere(vec3(-1,    -0.3, -1.2), 0.2, new Emmissive( vec3(0.3, 0.2, 0.0),   9.0,  false ));
-    // dList[7] = new Sphere(vec3( 0.3,  -0.5, -1.1), 0.2, new Emmissive( vec3(0.0, 0.1, 0.9),  10.0,  false ));
-    // dList[8] = new Sphere(vec3( 0,    -5.0, -3  ), 2.0, new Emmissive( vec3(1.0, 1.0, 1.0),   1.0,  false ));
-    // Hitable *pWorld = new HitableList(dList, 9);
+    Hitable *dList[9];
+    dList[0] = new Sphere(vec3( 0,   100.6, -2  ), 100, new Diffuse(   vec3(0.3, 0.5, 0.7)                ));
+    dList[1] = new Sphere(vec3( 0,     0,   -2  ), 0.5, new Diffuse(   vec3(0.8, 0.3, 0.3)                ));
+    dList[2] = new Sphere(vec3( 2.6,  -1.4, -1.7), 0.7, new Metal(     vec3(0.7, 0.7, 0.7),   0.4         ));
+    dList[3] = new Sphere(vec3( 1,     0,   -2  ), 0.4, new Metal(     vec3(0.3, 0.4, 0.9),   0.05        ));
+    dList[4] = new Sphere(vec3(-0.3,   0.1, -1  ), 0.3, new Glass(     vec3(0.5, 1.0, 0.6),   0.9         ));
+    dList[5] = new Sphere(vec3( 0,     0.2,  1  ), 0.3, new Glass(     vec3(0.8, 0.2, 0.3),   0.0         ));
+    dList[6] = new Sphere(vec3(-1,    -0.3, -1.2), 0.2, new Emmissive( vec3(0.3, 0.2, 0.0),   9.0,  false ));
+    dList[7] = new Sphere(vec3( 0.3,  -0.5, -1.1), 0.2, new Emmissive( vec3(0.0, 0.1, 0.9),  10.0,  false ));
+    dList[8] = new Sphere(vec3( 0,    -5.0, -3  ), 2.0, new Emmissive( vec3(1.0, 1.0, 1.0),   1.0,  false ));
+    Hitable *pWorld = new HitableList(dList, 9);
 
-    Hitable *dList[1];
-    dList[0] = new Sphere(vec3(0, 0, -2), 0.5, new Diffuse(vec3(0.8, 0.3, 0.3)));
-    Hitable *pWorld = new HitableList(dList, 1);
+    // Hitable *dList[1];
+    // dList[0] = new Sphere(vec3(0, 0, -2), 0.5, new Diffuse(vec3(0.8, 0.3, 0.3)));
+    // Hitable *pWorld = new HitableList(dList, 1);
 
     Camera cam(
             vec3(-1,0,2),
@@ -104,6 +176,7 @@ int main()
 
     while (true)
     {
+        //screen.show();
         if (pool.running() && pool.shouldTerminate)
         {
             screen.show();

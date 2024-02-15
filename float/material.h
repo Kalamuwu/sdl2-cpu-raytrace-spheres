@@ -60,8 +60,8 @@ public:
 
     bool scatter(ray &pRayIn, const hit_record &pRec, vec3 &pAttenuation, bool &isLightSource) const
     {
-        vec3 target = pRec.p + pRec.normal + random_in_unit_sphere();
-        pRayIn = ray(pRec.p, target-pRec.p);
+        vec3 target = pRec.normal + random_in_unit_sphere();
+        pRayIn = ray(pRec.p, target);
         pAttenuation = albedo * strength;
         isLightSource = true;
         return continueTracing;
@@ -152,6 +152,7 @@ public:
     Translucent(const vec3& a, const float t, const float s) : albedo(a) {
         translucency = (t>1) + (t>=0 && t<=1)*t;
         scattering = (scattering>1) + (scattering<=1 && scattering>=0)*scattering;
+        scattering *= 5;
     }
 
     // PpRecise method, which guarantees v = v1 when t = 1. This method is monotonic only when v0 * v1 < 0.
@@ -162,13 +163,13 @@ public:
 
     bool scatter(ray &pRayIn, const hit_record &pRec, vec3 &pAttenuation, bool &isLightSource) const
     {
+        pRayIn = ray(pRec.p, pRec.p + pRayIn.direction() + scattering*random_in_unit_sphere());
         float cosine = (dot(pRayIn.direction(), pRec.normal)) / (pRayIn.direction().length());
-        cosine = 0.5f*(cosine+1);
-        pRayIn = ray(pRec.p, pRec.p + pRayIn.direction() + scattering*5*random_in_unit_sphere());
+        cosine = 0.5f*(cosine+1.0f);
         pAttenuation = albedo;
-        pAttenuation[0] = lerp(0.0, pAttenuation[0], cosine) + translucency;
-        pAttenuation[1] = lerp(0.0, pAttenuation[1], cosine) + translucency;
-        pAttenuation[2] = lerp(0.0, pAttenuation[2], cosine) + translucency;
+        pAttenuation[0] = pAttenuation[0] * cosine + translucency;
+        pAttenuation[1] = pAttenuation[1] * cosine + translucency;
+        pAttenuation[2] = pAttenuation[2] * cosine + translucency;
         isLightSource = false;
         return true;
     }

@@ -10,20 +10,21 @@ class Sphere: public Hitable
 {
 public:
     Sphere() {};
-    Sphere(vec3 cen, float r, Material* mat) : center(cen), radius(r), pMat(mat) {};
+    Sphere(vec3 cen, float r, Material* mat) : center(cen), radius(r), pMat(mat) { radiusSq = radius * radius; };
     bool hit(const ray & r, float t_min, float t_max, hit_record & rec) const override;
 
     vec3 center;
-    float radius;
+    float radius, radiusSq;
     Material* pMat;
 };
 
 bool Sphere::hit(const ray &rayIn, float tMin, float tMax, hit_record &rec) const
 {
     vec3 oc = rayIn.origin() - center;
-    float a = dot(rayIn.direction(), rayIn.direction());
+    // find quadratic roots
+    float a = (rayIn.direction()).squared_length();
     float b = dot(oc, rayIn.direction());
-    float c = dot(oc, oc) - radius*radius;
+    float c = oc.squared_length() - radiusSq;
     float discrim = b*b - a*c;
     if (discrim > 0)
     {

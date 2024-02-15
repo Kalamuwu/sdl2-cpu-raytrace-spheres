@@ -22,8 +22,8 @@ public:
 
     bool scatter(ray &pRayIn, const hit_record &pRec, vec3 &pAttenuation, bool &isLightSource) const
     {
-        vec3 target = pRec.p + pRec.normal + random_in_unit_sphere();
-        pRayIn = ray(pRec.p, target-pRec.p);
+        vec3 target = pRec.normal + random_in_unit_sphere();
+        pRayIn = ray(pRec.p, target);
         pAttenuation = albedo;
         isLightSource = false;
         return true;
@@ -60,8 +60,8 @@ public:
 
     bool scatter(ray &pRayIn, const hit_record &pRec, vec3 &pAttenuation, bool &isLightSource) const
     {
-        vec3 target = pRec.p + pRec.normal + random_in_unit_sphere();
-        pRayIn = ray(pRec.p, target-pRec.p);
+        vec3 target = pRec.normal + random_in_unit_sphere();
+        pRayIn = ray(pRec.p, target);
         pAttenuation = albedo * strength;
         isLightSource = true;
         return continueTracing;
@@ -166,13 +166,12 @@ public:
 
     bool scatter(ray &pRayIn, const hit_record &pRec, vec3 &pAttenuation, bool &isLightSource) const
     {
-        const vec3 pRayInD = pRayIn.direction();
-        pRayIn = ray(pRec.p, pRec.p + pRayInD + scattering*random_in_unit_sphere());
-        float cosine = dot(pRayInD, pRec.normal) / pRayInD.length();
-        cosine = 0.5f*(cosine+1);
+        pRayIn = ray(pRec.p, pRec.p + pRayIn.direction() + scattering*random_in_unit_sphere());
+        float cosine = (dot(pRayIn.direction(), pRec.normal)) / (pRayIn.direction().length());
+        cosine = 0.5f*(cosine+1.0f);
         __m128 cosine_xmm = _mm_set1_ps(cosine);
         __m128 trans_xmm = _mm_set1_ps(translucency);
-        pAttenuation = _mm_fmadd_ps(albedo.xmm_, cosine_xmm, trans_xmm);
+        pAttenuation.xmm = _mm_fmadd_ps(albedo.xmm, cosine_xmm, trans_xmm);
         isLightSource = false;
         return true;
     }

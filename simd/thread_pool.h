@@ -59,7 +59,9 @@ ThreadPool::ThreadPool(uint32_t n_threads)
     // and the main thread still needs attention!
     const uint32_t m = std::thread::hardware_concurrency() - 1;
     assert(m>0);
-    m_num_threads = (n_threads<1)*1 + (n_threads>m)*m + (n_threads>=1 && n_threads<=m)*n_threads;
+    if (n_threads > m) m_num_threads = m;
+    else if (n_threads < 1) m_num_threads = 1;
+    else m_num_threads = n_threads;
     m_threads = std::vector<std::thread>(m_num_threads);
     m_total = 0;
 }
@@ -152,7 +154,7 @@ vec3 ThreadPool::color(ray& r, Hitable* pWorld)
         {
             if (rec.pMat->scatter(r, rec, attenuation, isLightSource))
                 runningAttenuation *= attenuation;
-            else return runningAttenuation * attenuation * isLightSource;
+            else return (isLightSource)? runningAttenuation * attenuation : vec3(0,0,0);
         }
         else return runningAttenuation * SKYBOX_COLOR;
         // // lerp white...blue and multiply by attenuation
@@ -169,7 +171,7 @@ void ThreadPool::doRayTrace(threadInfo *pGlobalInfo, int index)
 {
     const int x = index % WINDOW_WIDTH;
     const int y = index * (1.0f / WINDOW_WIDTH);
-    // printf("(%d,%d) starting.\n", x, y);
+    //printf("(%d,%d) starting.\n", x, y);
     // average the colors over num_its iterations. not only does
     // this achieve basic antialiasing, but also smoothes out the
     // render artifacts and raytracing noise.
@@ -188,18 +190,16 @@ void ThreadPool::doRayTrace(threadInfo *pGlobalInfo, int index)
         // visual glitches.
         col += color(r, pGlobalInfo->pWorld).clamp(0.0f, 1.0f);
     }
-    col *= (1.0f/NUM_ALIAS_STEPS);
+    col /= NUM_ALIAS_STEPS;
     // A square root is present because SDL assumes the image is gamma-
     // corrected. It is not. This is corrected by raising the color to
     // the power of 1/gamma; to simplify this math, gamma=2 is used.
     // The rest of this mess scales 0..1 --> 0..255, and converts to
     // uint8_t to chain together.
-    col = vec3(_mm_mul_ps(_mm_sqrt_ps(col.xmm_), _mm_set1_ps(255.99f)));
+    col = vec3(_mm_mul_ps(_mm_sqrt_ps(col.xmm), _mm_set1_ps(255.99f)));
     uint8_t ir = uint8_t(col.r());
     uint8_t ig = uint8_t(col.g());
     uint8_t ib = uint8_t(col.b());
-
-    // printf("Pixel (%d,%d) (%d) rendered\n", x, y, index);
 
     // write directly to pixel buffer for efficiency
     #if __BYTE_ORDER == __LITTLE_ENDIAN
