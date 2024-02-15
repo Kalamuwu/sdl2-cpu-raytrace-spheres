@@ -14,7 +14,7 @@ I've learned a lot over the course of this project and its extensions:
 
 4. Since then, I've extended it to multi-core rendering, using a threadpool-style executor and job queue.
 
-5. Since-er than since then, I've adapted it to CUDA to run on nVidia GPUs, and personally, gotten it pretty optimized :)
+5. Since-er than since then, I've adapted it to CUDA to run on nVidia GPUs (not included in this repo, see [sdl2-gpu-raytrace-spheres](https://github.com/Kalamuwu/sdl2-gpu-raytrace-spheres/)), and personally, gotten it pretty optimized :)
 
 6. Since-er-er than since then, I've extended it to SIMD XMM operations. The SIMD vector implementation runs worse than the standard `float` vector implementation, yes, I realize that; the goal wasn't performance, it was to learn about SIMD. It runs slower because (1.) all the loads/reads between XMM registers and normal registers, and (2.) there are a very, very small amount of XMM registers.
 
